@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "263734988551",
+    "project_id": "medrphalab-c9bae",
+    "storage_bucket": "medrphalab-c9bae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:263734988551:android:7eb1f4550e9cf00b5fffa2",
+        "android_client_info": {
+          "package_name": "com.medrpha_delivery.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-pJ-mL7FqH9KueZMIck20VSUQS0VhtA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
