@@ -25,7 +25,7 @@ class ApiConstants {
   static const String insertWishlist = "${baseUrl}WishlistAPI/InsertWishlist";
 
   // Image Base URL (commonly stored here or in a separate file)
-  static const String labImageBaseUrl = "https://www.online-tech.in/LabImage/";
-  static const String symptomImageBaseUrl = "https://www.online-tech.in/SymptomsImage/";
-  static const String testImageBaseUrl = "https://www.online-tech.in/TestMasterImage/";
+  static const String labImageBaseUrl = "https://online-tech.in/LabImage/";
+  static const String symptomImageBaseUrl = "https://online-tech.in/SymptomsImage/";
+  static const String testImageBaseUrl = "https://online-tech.in/TestMasterImage/";
 }

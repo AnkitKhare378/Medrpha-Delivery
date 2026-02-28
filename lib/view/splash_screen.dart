@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
           // Centered logo (static)
           Center(
             child: Image.asset(
-              'assets/images/medrpha_logo.png',
+              'assets/images/img_6.png',
               height: 250,
               width: 250,
             ),

@@ -9,22 +9,22 @@ import '../../models/LabM/lab_test_model.dart';
 abstract class LabTestEvent extends Equatable {
   const LabTestEvent();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => []; // Use Object? to allow nulls
 }
 
 class LoadLabTests extends LabTestEvent {
   final String name;
-  final int labId;
+  final int? labId; // ✅ Made optional
   final int symptomId;
 
   const LoadLabTests({
     this.name = "",
-    required this.labId,
+    this.labId, // ✅ No longer required
     this.symptomId = 0,
   });
 
   @override
-  List<Object> get props => [name, labId, symptomId];
+  List<Object?> get props => [name, labId, symptomId];
 }
 
 // --- 2. States ---
@@ -35,7 +35,6 @@ abstract class LabTestState extends Equatable {
 }
 
 class LabTestInitial extends LabTestState {}
-
 class LabTestLoading extends LabTestState {}
 
 class LabTestLoaded extends LabTestState {
@@ -68,6 +67,8 @@ class LabTestBloc extends Bloc<LabTestEvent, LabTestState> {
       ) async {
     emit(LabTestLoading());
     try {
+      // ✅ We pass the optional labId.
+      // The service will now check if it's null and fetch from local storage if needed.
       final tests = await _service.searchTests(
         name: event.name,
         labId: event.labId,
@@ -75,7 +76,8 @@ class LabTestBloc extends Bloc<LabTestEvent, LabTestState> {
       );
       emit(LabTestLoaded(tests));
     } catch (e) {
-      emit(LabTestError(e.toString()));
+      // Providing a cleaner error message if preferred
+      emit(LabTestError(e.toString().replaceAll("Exception:", "")));
     }
   }
 }

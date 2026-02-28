@@ -100,6 +100,7 @@ class OrderItemModel {
   final int quantity;
   final double unitPrice;
   final double totalPrice;
+  final int labId;
 
   OrderItemModel({
     required this.productId,
@@ -108,6 +109,7 @@ class OrderItemModel {
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
+    required this.labId,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -116,6 +118,7 @@ class OrderItemModel {
       orderItemId: json['OrderItemId'] as int? ?? 0,
       itemName: json['itemName'] as String? ?? 'Item N/A', // Null safety for String
       quantity: json['Quantity'] as int? ?? 0,
+      labId: json['LabId'] as int? ?? 0,
       unitPrice: (json['UnitPrice'] as num? ?? 0.0).toDouble(), // Null safety for double
       totalPrice: (json['TotalPrice'] as num? ?? 0.0).toDouble(), // Null safety for double
     );

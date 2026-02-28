@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-feature android:name="android.hardware.location.gps"/>
     <application
-        android:label="medrpha_delivery"
+        android:label="Medrpha Delivery"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

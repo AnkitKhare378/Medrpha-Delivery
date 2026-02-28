@@ -1,12 +1,15 @@
-// home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // Import Bloc
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medrpha_delivery/config/color/colors.dart';
-import 'package:medrpha_delivery/view/dashboard/pages/HomeV/HomeSection/custom_home_boxes.dart';
-import '../../../../models/OrderM/get_order_model.dart'; // Import model
-import '../../../../view_models/OrderVM/get_order_view_model.dart'; // Import BLoC
+import '../../../../models/OrderM/get_order_model.dart';
+import '../../../../models/OrderM/get_user_inventory_model.dart';
+import '../../../../view_models/OrderVM/get_order_view_model.dart';
+import '../../../../view_models/OrderVM/inventory_bloc.dart';
 import 'delivery_list_screen.dart';
+import 'pages/inventory_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,18 +19,37 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int? userId;
+
   @override
   void initState() {
     super.initState();
-    // 🎯 FIX: Trigger the BLoC to fetch data when the screen initializes
-    context.read<GetOrderBloc>().add(FetchAssignedOrders());
+    _loadUserDataAndFetch();
   }
 
-  // Helper method to get counts from the list of orders
+  /// 🎯 Fetches userId from SharedPreferences using getInt
+  Future<void> _loadUserDataAndFetch() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // ✅ Using getInt('user_id') as per your requirement
+      // Falling back to 3 if the stored value is null
+      userId = prefs.getInt('user_id') ?? 3;
+
+      if (mounted) {
+        context.read<GetOrderBloc>().add(FetchAssignedOrders());
+        context.read<InventoryBloc>().add(FetchInventory(userId!));
+      }
+    } catch (e) {
+      debugPrint("❌ Error loading local storage: $e");
+    }
+  }
+
   Map<String, int> _getOrderCounts(List<AssignedOrder> orders) {
     final Map<String, int> counts = {
       'Cancelled': 0,
       'Scheduled': 0,
+      'IsCollected ': 0,
       'Completed': 0,
       'Rescheduled': 0,
       'Total': 0,
@@ -43,25 +65,48 @@ class _HomeScreenState extends State<HomeScreen> {
     return counts;
   }
 
+  Widget _buildShimmerCard({bool isFullWidth = false}) {
+    return Expanded(
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          height: 95,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatusCard({
     required String title,
     required int count,
     required Color color,
-    required String status,
-    required bool isCompleted,
+    String? status,
+    bool isCompleted = false,
+    bool isCollected = false,
+    VoidCallback? onTap,
   }) {
-    // ... (same as before, no changes needed here)
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          Navigator.push(
+        onTap: onTap ?? () async {
+          if (status == null) return;
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => DeliveryListScreen(
-                status: status, isCompleted: isCompleted,
+                status: status,
+                isCompleted: isCompleted, isCollected: isCollected,
               ),
             ),
           );
+          if (context.mounted) {
+            context.read<GetOrderBloc>().add(FetchAssignedOrders());
+          }
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -109,75 +154,114 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Medrpha Delivery', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text('Medrpha Delivery',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
       ),
-      body: BlocBuilder<GetOrderBloc, GetOrderState>( // 🎯 Use BlocBuilder
-        builder: (context, state) {
-          if (state is GetOrderLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: RefreshIndicator(
+        onRefresh: _loadUserDataAndFetch,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            // --- 1. ORDERS SECTION ---
+            BlocBuilder<GetOrderBloc, GetOrderState>(
+              builder: (context, state) {
+                if (state is GetOrderLoading) {
+                  return Column(
+                    children: [
+                      Row(children: [_buildShimmerCard(isFullWidth: true)]),
+                      const SizedBox(height: 10),
+                      Row(children: [_buildShimmerCard(), _buildShimmerCard()]),
+                    ],
+                  );
+                }
 
-          // if (state is GetOrderFailure) {
-          //   return Center(
-          //     child: Text('Error loading orders: ${state.error}'),
-          //   );
-          // }
+                List<AssignedOrder> allOrders = (state is GetOrderSuccess) ? state.orders : [];
+                final counts = _getOrderCounts(allOrders);
 
-          List<AssignedOrder> allOrders = [];
-          if (state is GetOrderSuccess) {
-            allOrders = state.orders;
-          }
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        _buildStatusCard(
+                          title: 'Scheduled',
+                          count: counts['Scheduled'] ?? 0,
+                          color: Colors.blue.shade50,
+                          status: 'Scheduled',
+                        ),
+                        _buildStatusCard(
+                          title: 'Collected', // Display title
+                          count: counts['IsCollected '] ?? 0, // Access key with trailing space
+                          color: Colors.orange.shade50, // Changed color for visual difference
+                          status: 'IsCollected ',
+                          isCollected: true,// Pass the exact status to the next screen
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _buildStatusCard(
+                          title: 'Completed',
+                          count: counts['Completed'] ?? 0,
+                          color: Colors.green.shade50,
+                          status: 'Completed',
+                          isCompleted: true,
+                        ),
+                        _buildStatusCard(
+                          title: 'Cancelled',
+                          count: counts['Cancelled'] ?? 0,
+                          color: Colors.red.shade50,
+                          status: 'Cancelled',
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
 
-          // 🎯 Calculate counts based on the loaded data (or empty list)
-          final counts = _getOrderCounts(allOrders);
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 20),
 
-          return ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              // 🎯 UPDATED: Four status cards
-              Row(
-                children: [
-                  _buildStatusCard(
-                    title: 'Scheduled',
-                    count: counts['Scheduled'] ?? 0,
-                    color: Colors.blue.shade50,
-                    status: 'Scheduled',
-                    isCompleted: false,
-                  ),
-                  // _buildStatusCard(
-                  //   title: 'Rescheduled',
-                  //   count: counts['Rescheduled'] ?? 0,
-                  //   color: Colors.orange.shade50,
-                  //   status: 'Rescheduled',
-                  // ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  _buildStatusCard(
-                    title: 'Completed',
-                    count: counts['Completed'] ?? 0,
-                    color: Colors.green.shade50,
-                    status: 'Completed',
-                    isCompleted: true,
-                  ),
-                  _buildStatusCard(
-                    title: 'Cancelled',
-                    count: counts['Cancelled'] ?? 0,
-                    color: Colors.red.shade50,
-                    status: 'Cancelled',
-                    isCompleted: false,
-                  ),
-                ],
-              ),
-              // const SizedBox(height: 20),
-              // CustomHomeBoxes(),
-            ],
-          );
-        },
+            // --- 2. INVENTORY SECTION ---
+            BlocBuilder<InventoryBloc, InventoryState>(
+              builder: (context, state) {
+                if (state is InventoryLoading) {
+                  return Row(children: [_buildShimmerCard(isFullWidth: true)]);
+                }
+
+                int totalItems = 0;
+                List<InventoryData> items = [];
+
+                if (state is InventoryLoaded) {
+                  items = state.items;
+                  totalItems = items.length;
+                }
+
+                return Row(
+                  children: [
+                    _buildStatusCard(
+                      title: 'Total Inventory Items',
+                      count: totalItems,
+                      color: Colors.purple.shade50,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InventoryDetailsScreen(items: items),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

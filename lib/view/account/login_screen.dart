@@ -1,10 +1,14 @@
 // company_login_view.dart (Modified LoginScreen)
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../config/routes/routes_name.dart';
+import '../../core/services/navigation_service.dart';
 import '../../view_models/AccountVM/company_login_view_model.dart';
+import '../../view_models/DashboardVM/bloc/dashboard_bloc.dart';
+import '../../view_models/DashboardVM/bloc/dashboard_event.dart';
 import 'widgets/pill_input_field.dart';
 import 'widgets/terms_privacy_text.dart';
 
@@ -32,6 +36,34 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () => _autoScroll());
+
+    final notificationService = NotificationService();
+
+    notificationService.requestNotificationPermission();
+    notificationService.getDeviceToken();
+    notificationService.firebaseInit(context);
+    notificationService.setupInteractMessage(context);
+
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        _handleNotificationTap(message);
+      }
+    });
+
+    // Foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // handle if needed
+    });
+
+    // Background notification tap
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _handleNotificationTap(message);
+    });
+  }
+
+  void _handleNotificationTap(RemoteMessage message) {
+    // Your UI is driven by bloc's state.currentIndex, so drive the bloc:
+    context.read<DashboardBloc>().add( DashboardTabChanged(1));
   }
 
   void _autoScroll() {
@@ -61,12 +93,15 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.pushReplacementNamed(context, RoutesName.dashboardScreen);
   }
 
-  void _onLoginButtonPressed(BuildContext context) {
+  void _onLoginButtonPressed(BuildContext context) async{
+    String? token = await FirebaseMessaging.instance.getToken();
     if (_formKey.currentState!.validate()) {
       context.read<CompanyLoginBloc>().add(
         CompanyLoginSubmitted(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
+          deviceType: 'App',
+          deviceToken: token ?? '',
         ),
       );
     }
@@ -203,7 +238,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                         const SizedBox(height: 15),
 
-                                        // --- REPLACED PASSWORD TEXTFORMFIELD WITH PILLINPUTFIELD ---
                                         PillInputField(
                                           label: "Password",
                                           icon: Icons.lock_outline,

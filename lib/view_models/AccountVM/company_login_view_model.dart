@@ -46,8 +46,10 @@ abstract class CompanyLoginEvent extends Equatable {
 class CompanyLoginSubmitted extends CompanyLoginEvent {
   final String email;
   final String password;
+  final String deviceToken;
+  final String deviceType;
 
-  const CompanyLoginSubmitted({required this.email, required this.password});
+  const CompanyLoginSubmitted({required this.email, required this.password, required this.deviceType, required this.deviceToken});
 
   @override
   List<Object> get props => [email, password];
@@ -70,6 +72,8 @@ class CompanyLoginBloc extends Bloc<CompanyLoginEvent, CompanyLoginState> {
       final CompanyLoginModel user = await _loginService.companyUserLogin(
         email: event.email,
         password: event.password,
+        deviceToken: event.deviceToken, // Pass from event
+        deviceType: event.deviceType,
       );
 
       final prefs = await SharedPreferences.getInstance();

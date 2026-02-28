@@ -1,5 +1,3 @@
-// get_order_model.dart
-
 class AssignedOrder {
   final int id;
   final int orderId;
@@ -10,9 +8,17 @@ class AssignedOrder {
   final bool isComplete;
   final bool isCanceled;
   final bool isScheduled;
-  // New Fields
   final bool isReScheduled;
   final String status;
+  // New fields added below
+  final String userPhone;
+  final String? faltHousNumber;
+  final String? pincode;
+  final String? latitude;
+  final String? longitude;
+  final String? locality;
+  final String? addressTitle;
+  final String? deliveryBoy;
 
   AssignedOrder({
     required this.id,
@@ -24,9 +30,16 @@ class AssignedOrder {
     required this.isComplete,
     required this.isCanceled,
     required this.isScheduled,
-    // New Fields in constructor
     required this.isReScheduled,
     required this.status,
+    required this.userPhone,
+    this.faltHousNumber,
+    this.pincode,
+    this.latitude,
+    this.longitude,
+    this.locality,
+    this.addressTitle,
+    this.deliveryBoy,
   });
 
   factory AssignedOrder.fromJson(Map<String, dynamic> json) {
@@ -34,15 +47,22 @@ class AssignedOrder {
       id: json['id'] as int,
       orderId: json['orderId'] as int,
       userId: json['userId'] as int,
-      userName: json['userName'] as String,
-      orderNumber: json['orderNumber'] as String,
-      isActive: json['isActive'] as bool,
-      isComplete: json['isComplete'] as bool,
-      isCanceled: json['isCanceled'] as bool,
-      isScheduled: json['isScheduled'] as bool,
-      // New Fields in fromJson
-      isReScheduled: json['isReScheduled'] as bool,
-      status: json['status'] as String,
+      userName: json['userName'] ?? '',
+      orderNumber: json['orderNumber'] ?? '',
+      isActive: json['isActive'] ?? false,
+      isComplete: json['isComplete'] ?? false,
+      isCanceled: json['isCanceled'] ?? false,
+      isScheduled: json['isScheduled'] ?? false,
+      isReScheduled: json['isReScheduled'] ?? false,
+      status: json['status'] ?? '',
+      userPhone: json['userPhone'] ?? '',
+      faltHousNumber: json['faltHousNumber'] as String?,
+      pincode: json['pincode'] as String?,
+      latitude: json['latitude'] as String?,
+      longitude: json['longitude'] as String?,
+      locality: json['locality'] as String?,
+      addressTitle: json['addressTitle'] as String?,
+      deliveryBoy: json['deliveryBoy'] as String?,
     );
   }
 }
@@ -57,12 +77,11 @@ class GetOrderResponse {
   });
 
   factory GetOrderResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    List<AssignedOrder> orderList = list.map((i) => AssignedOrder.fromJson(i)).toList();
-
     return GetOrderResponse(
-      status: json['status'] as bool,
-      data: orderList,
+      status: json['status'] ?? false,
+      data: (json['data'] as List? ?? [])
+          .map((i) => AssignedOrder.fromJson(i))
+          .toList(),
     );
   }
 }

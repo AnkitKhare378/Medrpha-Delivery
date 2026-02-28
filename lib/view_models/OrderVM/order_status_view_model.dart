@@ -11,8 +11,17 @@ abstract class OrderStatusEvent {}
 class UpdateOrderStatusRequested extends OrderStatusEvent {
   final int orderId;
   final int statusType;
+  final String? orderDate; // Changed to nullable String?
+  final String? orderTime; // Changed to nullable String?
+  final int sumbitUserId;
 
-  UpdateOrderStatusRequested({required this.orderId, required this.statusType});
+  UpdateOrderStatusRequested({
+    required this.orderId,
+    required this.statusType,
+    this.orderDate, // Removed 'required'
+    this.orderTime, // Removed 'required'
+    required this.sumbitUserId,
+  });
 }
 
 // --- 2. States ---
@@ -46,9 +55,13 @@ class OrderStatusBloc extends Bloc<OrderStatusEvent, OrderStatusState> {
       ) async {
     emit(OrderStatusLoading());
     try {
+      // The service will now receive null for date/time if not provided
       final response = await _service.updateOrderStatus(
         orderId: event.orderId,
         statusType: event.statusType,
+        orderDate: event.orderDate,
+        orderTime: event.orderTime,
+        sumbitUserId: event.sumbitUserId,
       );
       emit(OrderStatusSuccess(response));
     } catch (e) {

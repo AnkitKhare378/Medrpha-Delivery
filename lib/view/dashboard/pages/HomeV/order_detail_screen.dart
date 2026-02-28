@@ -18,7 +18,10 @@ import '../../../../view_models/OrderVM/order_status_view_model.dart';
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
   final bool isCompleted;
-  const OrderDetailScreen({super.key, required this.orderId, required this.isCompleted});
+  final bool isCollected;
+  final String lat;
+  final String long;
+  const OrderDetailScreen({super.key, required this.orderId, required this.isCompleted,required this.isCollected, required this.lat, required this.long});
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
@@ -86,7 +89,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           create: (context) => OrderStatusBloc(OrderStatusService()),
         ),
       ],
-      child: OrderDetailView(orderId: widget.orderId, userId: validUserId, isCompleted : widget.isCompleted),
+      child: OrderDetailView(orderId: widget.orderId, userId: validUserId, isCompleted : widget.isCompleted, lat: widget.lat, long: widget.long, isCollected: widget.isCollected,),
     );
   }
 }

@@ -4,9 +4,17 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:medrpha_delivery/data/repositories/order_service/get_user_by_lab_service.dart';
+import 'package:medrpha_delivery/data/repositories/order_service/get_user_inventory_service.dart';
+import 'package:medrpha_delivery/data/repositories/order_service/order_start_service.dart';
 import 'package:medrpha_delivery/data/repositories/order_service/order_status_service.dart';
+import 'package:medrpha_delivery/data/repositories/order_service/store_shift_service.dart';
 import 'package:medrpha_delivery/view_models/OrderVM/get_order_view_model.dart';
+import 'package:medrpha_delivery/view_models/OrderVM/inventory_bloc.dart';
+import 'package:medrpha_delivery/view_models/OrderVM/order_start_bloc.dart';
 import 'package:medrpha_delivery/view_models/OrderVM/order_status_view_model.dart';
+import 'package:medrpha_delivery/view_models/OrderVM/store_shift_view_model.dart';
+import 'package:medrpha_delivery/view_models/OrderVM/user_selection_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/firebase_options.dart';
 import 'config/routes/routes.dart';
@@ -61,6 +69,18 @@ Future<void> main() async {
         RepositoryProvider<OrderStatusService>(
           create: (_) => OrderStatusService(),
         ),
+        RepositoryProvider<OrderStartService>(
+          create: (_) => OrderStartService(),
+        ),
+        RepositoryProvider<InventoryService>(
+          create: (_) => InventoryService(),
+        ),
+        RepositoryProvider<GetUserByLabService>(
+          create: (_) => GetUserByLabService(),
+        ),
+        RepositoryProvider<StoreShiftService>(
+          create: (_) => StoreShiftService(),
+        ),
       ],
       child: MyApp(initialRoute: startRoute),
     ),
@@ -79,16 +99,13 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => DashboardBloc()..add(DashboardShowLabsDialog())),
         BlocProvider(create: (_) => CompanyLoginBloc()),
         BlocProvider(create: (_) => GetOrderBloc()),
-        BlocProvider<OrderHistoryBloc>(
-          create: (context) => OrderHistoryBloc(
-            context.read<OrderHistoryService>(),
-          ),
-        ),
-        BlocProvider<OrderStatusBloc>(
-          create: (context) => OrderStatusBloc(
-            context.read<OrderStatusService>(),
-          ),
-        ),
+        BlocProvider<OrderHistoryBloc>(create: (context) => OrderHistoryBloc(context.read<OrderHistoryService>(),),),
+        BlocProvider<OrderStatusBloc>(create: (context) => OrderStatusBloc(context.read<OrderStatusService>(),),),
+        BlocProvider<OrderStartBloc>(create: (context) => OrderStartBloc(context.read<OrderStartService>(),),),
+        BlocProvider<OrderEndBloc>(create: (context) => OrderEndBloc(context.read<OrderStartService>(),),),
+        BlocProvider<InventoryBloc>(create: (context) => InventoryBloc(context.read<InventoryService>(),),),
+        BlocProvider<UserSelectionBloc>(create: (context) => UserSelectionBloc(context.read<GetUserByLabService>(),),),
+        BlocProvider<StoreShiftBloc>(create: (context) => StoreShiftBloc(context.read<StoreShiftService>(),),),
       ],
       child: MaterialApp(
         title: 'Medrpha Delivery',

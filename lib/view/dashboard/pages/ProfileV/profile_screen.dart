@@ -19,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _userName = 'Loading...';
   String _userEmail = 'Loading...';
   String _companyName = 'Loading...';
-  String _baseUrl = 'https://www.online-tech.in/CompanyUserImage/';
+  String _baseUrl = 'https://online-tech.in/CompanyUserImage/';
   String _userImage = 'assets/images/blood_test.png'; // Default asset fallback
   bool _isLoading = true;
 
@@ -218,11 +218,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: "View Location",
                   icon: Icons.settings,
                   onPress: () {
-                    Navigator.of(context).push(
-                      SlidePageRoute(
-                        page: const LocationPickerScreen(),
-                      ),
-                    );
+                    // Navigator.of(context).push(
+                    //   SlidePageRoute(
+                    //     page: const LocationPickerScreen(),
+                    //   ),
+                    // );
                   }),
               // Removed commented-out widgets for clarity
               const Divider(),

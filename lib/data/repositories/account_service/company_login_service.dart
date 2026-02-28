@@ -1,5 +1,3 @@
-
-
 import '../../../config/apiConstant/api_constant.dart';
 import '../../../core/network/api_call.dart';
 import '../../../models/AccountM/company_login_model.dart';
@@ -8,13 +6,17 @@ class CompanyLoginService {
   Future<CompanyLoginModel> companyUserLogin({
     required String email,
     required String password,
+    required String deviceToken, // Added
+    required String deviceType,  // Added
   }) async {
     // URL Encode the parameters for safety
     final encodedEmail = Uri.encodeComponent(email);
     final encodedPassword = Uri.encodeComponent(password);
+    final encodedToken = Uri.encodeComponent(deviceToken);
+    final encodedType = Uri.encodeComponent(deviceType);
 
     final String url =
-        "${ApiConstants.baseUrl}CompanyAPI/CompanyUserLogin?Email=$encodedEmail&Password=$encodedPassword";
+        "${ApiConstants.baseUrl}CompanyAPI/CompanyUserLogin?Email=$encodedEmail&Password=$encodedPassword&deviceToken=$encodedToken&deviceType=$encodedType";
 
     try {
       final response = await ApiCall.get(url);
